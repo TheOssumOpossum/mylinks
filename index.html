@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Links</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #0f0f0f;
+      color: #e8e8e8;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .link-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .link-row:hover .link-pill,
+    .link-row:focus .link-pill {
+      background-color: #2a2a2a;
+      border-color: #555;
+    }
+
+    .link-row:hover .avatar,
+    .link-row:focus .avatar {
+      border-color: #888;
+    }
+
+    /* Circle avatar */
+    .avatar {
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      border-radius: 50%;
+      background-color: #1e1e1e;
+      border: 2px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      transition: border-color 0.2s ease;
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .avatar .fa-envelope { color: #a8c4e0; }
+    .avatar .fa-tiktok   { color: #e8e8e8; }
+    .avatar .fa-instagram { color: #e1a0c8; }
+
+    /* Pill */
+    .link-pill {
+      flex: 1;
+      height: 56px;
+      border-radius: 28px;
+      background-color: #1a1a1a;
+      border: 2px solid #333;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .link-pill .label {
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1.2;
+      color: #e8e8e8;
+    }
+
+    .link-pill .sublabel {
+      font-size: 13px;
+      font-weight: 400;
+      color: #888;
+      line-height: 1.2;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="links-container">
+
+    <!-- Email -->
+    <a class="link-row" href="mailto:vinny.the.bonbon@gmail.com">
+      <div class="avatar">
+        <i class="fa-solid fa-envelope"></i>
+      </div>
+      <div class="link-pill">
+        <span class="label">Contact Me</span>
+        <span class="sublabel">vinny.the.bonbon@gmail.com</span>
+      </div>
+    </a>
+
+    <!-- TikTok -->
+    <a class="link-row" href="https://tiktok.com/@spreadsheetnerd" target="_blank" rel="noopener">
+      <div class="avatar">
+        <i class="fa-brands fa-tiktok"></i>
+      </div>
+      <div class="link-pill">
+        <span class="label">@spreadsheetnerd</span>
+        <span class="sublabel">4K followers</span>
+      </div>
+    </a>
+
+    <!-- Instagram -->
+    <a class="link-row" href="https://instagram.com/vinnyvinnybonbon" target="_blank" rel="noopener">
+      <div class="avatar">
+        <i class="fa-brands fa-instagram"></i>
+      </div>
+      <div class="link-pill">
+        <span class="label">@vinnyvinnybonbon</span>
+        <span class="sublabel">500 followers</span>
+      </div>
+    </a>
+
+  </div>
+
+</body>
+</html>
