@@ -69,7 +69,7 @@
   }
 
   .timeline-wrap {
-    padding: 20px 0 50vh 120px;
+    padding: 20px 0 30vh 120px;
     position: relative;
   }
 
@@ -250,7 +250,7 @@
       top: 20px;
     }
     .timeline-wrap {
-      padding: 20px 24px 50vh 60px;
+      padding: 20px 24px 30vh 60px;
     }
     .timeline-wrap::before {
       left: 60px;
@@ -284,6 +284,7 @@
 
 /* The Button Style */
 .back-btn {
+    pointer-events: auto;
     float: right;
     background-color: #222;
     color: var(--lit);
@@ -306,9 +307,7 @@
 <body>
 
 <div class="back-button-container">
-    <a href="index.html" target="_blank" rel="noopener">
-        <button class="back-btn">← Back</button>
-    </a>
+    <a href="index.html" class="button back-btn" target="_blank" rel="noopener">← Back</a>
 </div>
 
 <header>
@@ -488,21 +487,56 @@
 <script>
   const entries = document.querySelectorAll('.entry');
 
-  function applyScrollHighlight() {
-    const mid = window.innerHeight / 2;
+//   function applyScrollHighlight() {
+//     const mid = window.innerHeight / 2;
+//     let best = null;
+//     let bestDist = Infinity;
+//     entries.forEach(entry => {
+//       const rect = entry.getBoundingClientRect();
+//       if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+//       const dist = Math.abs((rect.top + rect.height / 2) - mid);
+//       if (dist < bestDist) { bestDist = dist; best = entry; }
+//     });
+//     if (!best) return;
+//     if (best.classList.contains('active')) return;
+//     entries.forEach(e => e.classList.remove('active'));
+//     best.classList.add('active');
+//   }
+
+    function applyScrollHighlight() {
+    // 1. Calculate how far down the page the user has scrolled (0 to 1)
+    const scrollTop = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const scrollRatio = maxScroll <= 0 ? 0 : scrollTop / maxScroll;
+
+    // 2. Define the "Spotlight" position proportional to scroll
+    // At the top of the page, targetY is 0. At the bottom, targetY is window.innerHeight.
+    const targetY = scrollRatio * window.innerHeight;
+
     let best = null;
     let bestDist = Infinity;
+
     entries.forEach(entry => {
-      const rect = entry.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-      const dist = Math.abs((rect.top + rect.height / 2) - mid);
-      if (dist < bestDist) { bestDist = dist; best = entry; }
+        const rect = entry.getBoundingClientRect();
+
+        // Skip if off-screen
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+
+        // 3. Calculate distance from the element's center to our dynamic targetY
+        const elementMid = rect.top + rect.height / 2;
+        const dist = Math.abs(elementMid - targetY);
+
+        if (dist < bestDist) {
+        bestDist = dist;
+        best = entry;
+        }
     });
-    if (!best) return;
-    if (best.classList.contains('active')) return;
+
+    if (!best || best.classList.contains('active')) return;
+
     entries.forEach(e => e.classList.remove('active'));
     best.classList.add('active');
-  }
+    }
 
   const separators = document.querySelectorAll('.separator');
   let hovering = false;
