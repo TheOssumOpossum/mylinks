@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>My PRs</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,200&display=swap"
+          rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f0f0f;
+            --line: #2a2a2a;
+            --text: #e8e4dc;
+            --muted: #474747;
+            --dim: #3a3a3a;
+            --lit: #a0a0a0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+            font-weight: normal;
+            min-height: 100vh;
+            overflow-x: hidden;
+            margin: 0 auto;
+            padding: 32px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .page-header {
+            width: 100%;
+            max-width: 950px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .chart-scroll-wrapper {
+            width: 100%;
+            max-width: 950px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .chart-container {
+            width: 100%;
+            min-width: 600px;
+            height: 550px;
+            border-radius: 12px;
+            padding: 24px;
+            background: black;
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--line);
+            box-sizing: border-box;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #custom-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            pointer-events: none;
+            display: none;
+            font-size: 13px;
+            line-height: 1.5;
+            z-index: 1000;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+        }
+
+        .tooltip-title {
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            display: block;
+            color: #38bdf8;
+        }
+
+        /* The Button Style */
+        .back-btn {
+            pointer-events: auto;
+            flex-shrink: 0;
+            background-color: #222;
+            color: var(--lit);
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            /* box-shadow: 0 4px 6px rgba(0,0,0,0.2); */
+            transition: background 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+        }
+
+        .back-btn:hover {
+            background-color: #333;
+        }
+
+        .chart-title {
+            color: var(--text);
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .table-wrapper {
+            width: 100%;
+            max-width: 950px;
+            margin-top: 24px;
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .table-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            flex-shrink: 0;
+        }
+
+        #filter-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 4px 12px;
+            border-radius: 50px;
+            border: 1px solid;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.2s;
+            background: transparent;
+        }
+
+        .filter-pill.inactive {
+            opacity: 0.3;
+        }
+
+        .year-range-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            color: var(--lit);
+            font-size: 13px;
+        }
+
+        .year-range-track {
+            position: relative;
+            width: 260px;
+            height: 20px;
+        }
+
+        .year-range-track input[type="range"] {
+            position: absolute;
+            width: 100%;
+            height: 4px;
+            top: 8px;
+            left: 0;
+            appearance: none;
+            -webkit-appearance: none;
+            background: transparent;
+            pointer-events: none;
+            outline: none;
+        }
+
+        .year-range-track input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--lit);
+            cursor: pointer;
+            pointer-events: all;
+            border: 2px solid var(--bg);
+        }
+
+        .year-range-track input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--lit);
+            cursor: pointer;
+            pointer-events: all;
+            border: 2px solid var(--bg);
+        }
+
+        #range-track-fill {
+            position: absolute;
+            height: 4px;
+            top: 8px;
+            background: var(--lit);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        #range-track-bg {
+            position: absolute;
+            height: 4px;
+            top: 8px;
+            left: 0;
+            right: 0;
+            background: var(--dim);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .year-label {
+            min-width: 36px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .year-step-btn {
+            background: none;
+            border: 1px solid var(--muted);
+            color: var(--lit);
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 16px;
+            line-height: 1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .year-step-btn:hover {
+            border-color: var(--lit);
+            color: var(--text);
+        }
+
+        #race-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+
+        #race-table th:nth-child(1), #race-table td:nth-child(1) { width: 110px; }
+        #race-table th:nth-child(2), #race-table td:nth-child(2) { width: auto; }
+        #race-table th:nth-child(3), #race-table td:nth-child(3) { width: 130px; }
+        #race-table th:nth-child(4), #race-table td:nth-child(4) { width: 100px; }
+        #race-table th:nth-child(5), #race-table td:nth-child(5) { width: 60px; }
+
+        #race-table th,
+        #race-table td {
+            padding: 0 16px;
+            height: 48px;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        #race-table th {
+            color: var(--lit);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 1px solid var(--dim);
+        }
+
+        #race-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        #race-table td:first-child {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .sortable-header {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .sortable-header:hover {
+            color: var(--text);
+        }
+
+        .sort-arrow {
+            margin-left: 4px;
+            opacity: 0.6;
+        }
+
+        .pr-cell {
+            text-align: center;
+        }
+
+        .ribbon svg {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-header">
+        <h2 class="chart-title">Progression of Running PRs and Ultras</h2>
+        <a href="index.html"
+           class="button back-btn"
+           target="_blank"
+           rel="noopener">← Back</a>
+    </div>
+
+    <div class="chart-scroll-wrapper">
+        <div class="chart-container" id="container">
+            <div id="custom-tooltip"></div>
+            <canvas id="performanceChart"></canvas>
+        </div>
+        <div class="year-range-wrapper">
+            <button class="year-step-btn" id="year-minus-btn">−</button>
+            <span class="year-label" id="year-min-label">—</span>
+            <div class="year-range-track">
+                <div id="range-track-bg"></div>
+                <div id="range-track-fill"></div>
+                <input type="range" id="year-min-slider" step="1">
+            </div>
+            <span class="year-label">2026</span>
+            <button class="year-step-btn" id="year-plus-btn">+</button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <div class="table-header">
+            <h3 class="table-title">All my races + Ultras</h3>
+            <button id="toggle-all-btn" class="filter-pill" style="color:var(--lit);border-color:var(--muted)">&#x1F649;</button>
+            <div id="filter-pills"></div>
+        </div>
+        <table id="race-table">
+            <thead>
+                <tr>
+                    <th id="date-sort-header" class="sortable-header">Date <span class="sort-arrow">↓</span></th>
+                    <th>Race Name</th>
+                    <th>Distance</th>
+                    <th>Time</th>
+                    <th>PR</th>
+                </tr>
+            </thead>
+            <tbody id="race-table-body"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- State Management ---
+        let isLocked = false;
+        let lockedPoint = null;
+        let hoveredPoint = null;
+        let initialMaxFallback = null;
+        const tooltipEl = document.getElementById('custom-tooltip');
+
+        // --- Helper Utilities ---
+        const toMins = (h, m, s = 0) => (h * 60) + m + (s / 60);
+        const formatTime = (totalMinutes) => {
+            const h = Math.floor(totalMinutes / 60);
+            const m = Math.floor(totalMinutes % 60);
+            const s = Math.round((totalMinutes % 1) * 60);
+            const mm = m.toString().padStart(2, '0');
+            const ss = s.toString().padStart(2, '0');
+            return h > 0 ? `${h}:${mm}:${ss}` : `${m}:${ss}`;
+        };
+        const hexToRgba = (hex, alpha) => {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        // --- Star SVG Logic ---
+        function rotate2D(vecArr, byRads) {
+            const cos = Math.cos(byRads);
+            const sin = Math.sin(byRads);
+            return vecArr.map(p => [cos * p[0] - sin * p[1], sin * p[0] + cos * p[1]]);
+        }
+        function generateStarTriangles(numPoints, r) {
+            const triangleBase = r * Math.tan(Math.PI / numPoints);
+            const triangle = [[0, r], [triangleBase / 2, 0], [-triangleBase / 2, 0], [0, r]];
+            const result = [];
+            for (let i = 0; i < numPoints; i++) result.push(rotate2D(triangle, i * (2 * Math.PI / numPoints)));
+            return result;
+        }
+        function createStarImage(size, color, alpha = 1) {
+            const starCanvas = document.createElement('canvas');
+            starCanvas.width = size; starCanvas.height = size;
+            const ctx = starCanvas.getContext('2d');
+            const radius = size / 2;
+            const penta = generateStarTriangles(5, radius * 0.9);
+            ctx.globalAlpha = alpha; ctx.fillStyle = color;
+            penta.forEach(points => {
+                ctx.beginPath(); ctx.moveTo(points[0][0] + radius, -points[0][1] + radius);
+                for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0] + radius, -points[i][1] + radius);
+                ctx.closePath(); ctx.fill();
+            });
+            return starCanvas;
+        }
+
+        const starIconNormal = createStarImage(24, '#FFD700', 1);
+        const starIconHover = createStarImage(32, '#FFD700', 1);
+        const starIconHidden = createStarImage(24, '#FFD700', 0);
+
+        // --- Data ---
+        const colors = { marathon: '#e63946', half: '#457b9d', '5k': '#fca311', mile: '#2a9d8f', ultras: '#9b5de5' };
+        const getDsMax = (data) => Math.max(...data.map(d => d.y));
+
+        function parseCSV(text) {
+            const rows = [];
+            for (const line of text.trim().split('\n').slice(1)) {
+                const [category, date, hours, minutes, seconds, name, distance] = line.split(',');
+                const h = parseFloat(hours) || 0;
+                const m = parseFloat(minutes) || 0;
+                const s = parseFloat(seconds) || 0;
+                const dist = parseFloat(distance) || null;
+                const time = toMins(h, m, s);
+                const y = dist !== null ? dist : time;
+                rows.push({ category, date, y, time, name: (name?.trim() || '').replace(/\s+\d{4}$/, ''), distance: dist });
+            }
+            return rows;
+        }
+
+        function buildRaceData(rows) {
+            const data = { Marathon: [], 'Half-Marathon': [], '5K': [], Mile: [], Ultras: [] };
+            for (const row of rows) {
+                if (!data[row.category]) continue;
+                const point = { x: row.date, y: row.y };
+                if (row.name) point.label = row.name;
+                data[row.category].push(point);
+            }
+            // For time-based categories, keep only points that were PRs at the time they were run
+            for (const cat of ['Marathon', 'Half-Marathon', '5K', 'Mile']) {
+                const sorted = [...data[cat]].sort((a, b) => new Date(a.x) - new Date(b.x));
+                let best = Infinity;
+                data[cat] = sorted.filter(p => {
+                    if (p.y < best) { best = p.y; return true; }
+                    return false;
+                });
+            }
+            return data;
+        }
+
+        function computePRs(rows) {
+            const medalMap = new Map();
+            const byCategory = {};
+            rows.forEach((row, i) => {
+                if (row.category === 'Ultras' || row.category === 'Unsanctioned') return;
+                if (!byCategory[row.category]) byCategory[row.category] = [];
+                byCategory[row.category].push({ row, i });
+            });
+            const medalNames = ['gold', 'silver', 'bronze'];
+            for (const entries of Object.values(byCategory)) {
+                entries.sort((a, b) => a.row.y - b.row.y);
+                entries.slice(0, 3).forEach(({ i }, rank) => {
+                    medalMap.set(i, medalNames[rank]);
+                });
+            }
+            return rows.map((row, i) => ({
+                ...row,
+                medal: medalMap.get(i) || null,
+                isPR: medalMap.get(i) === 'gold'
+            }));
+        }
+
+        async function loadRaceData() {
+            const res = await fetch('./prs.csv');
+            const text = await res.text();
+            return parseCSV(text);
+        }
+
+        // --- Legend Box Plugin ---
+        const legendBoxPlugin = {
+            id: 'legendBox',
+            beforeDraw: (chart) => {
+                const { ctx, legend } = chart;
+                if (!legend || !legend.legendItems) return;
+
+                ctx.save();
+                legend.legendHitBoxes.forEach((hitBox, i) => {
+                    const item = legend.legendItems[i];
+                    const ds = chart.data.datasets[item.datasetIndex];
+
+                    // Directly check dataset property instead of legend item property
+                    const isHidden = ds.isHidden;
+
+                    const x = hitBox.left - 8;
+                    const y = hitBox.top - 4;
+                    const width = hitBox.width + 16;
+                    const height = hitBox.height + 8;
+                    const radius = 6;
+
+                    if (isHidden) {
+                        ctx.fillStyle = 'rgba(200, 200, 200, 0.15)';
+                        ctx.strokeStyle = 'rgba(150, 150, 150, 0.3)';
+                    } else {
+                        ctx.fillStyle = hexToRgba(ds.baseColor, 0.12);
+                        ctx.strokeStyle = hexToRgba(ds.baseColor, 0.3);
+                    }
+
+                    ctx.beginPath();
+                    ctx.moveTo(x + radius, y);
+                    ctx.lineTo(x + width - radius, y);
+                    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                    ctx.lineTo(x + width, y + height - radius);
+                    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                    ctx.lineTo(x + radius, y + height);
+                    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                    ctx.lineTo(x, y + radius);
+                    ctx.quadraticCurveTo(x, y, x + radius, y);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+                ctx.restore();
+            }
+        };
+
+        // --- Visual Controller Plugin ---
+        const visualControllerPlugin = {
+            id: 'visualController',
+            beforeDatasetDraw: (chart, args) => {
+                const dsIndex = args.index;
+                const dataset = chart.data.datasets[dsIndex];
+                const meta = chart.getDatasetMeta(dsIndex);
+                const isMilestones = dataset.label === 'Ultras';
+                const baseRadius = isMilestones ? 12 : 8;
+
+                meta.data.forEach((element, i) => {
+                    const isLockedPoint = isLocked && lockedPoint && dsIndex === lockedPoint.datasetIndex && i === lockedPoint.index;
+                    const isHoveredPoint = !isLocked && hoveredPoint && dsIndex === hoveredPoint.datasetIndex && i === hoveredPoint.index;
+
+                    if (isMilestones) {
+                        if (dataset.isHidden) {
+                            element.options.pointStyle = starIconHidden;
+                            element.options.radius = baseRadius;
+                        } else if (isLockedPoint || isHoveredPoint) {
+                            element.options.pointStyle = starIconHover;
+                            element.options.radius = 16;
+                        } else {
+                            element.options.pointStyle = starIconNormal;
+                            element.options.radius = baseRadius;
+                        }
+                    } else {
+                        element.options.pointStyle = dataset.pointStyle;
+                        let targetRadius = baseRadius;
+                        if (isLockedPoint || isHoveredPoint) {
+                            targetRadius = 11;
+                        }
+                        element.options.radius = targetRadius;
+                        element.options.hoverRadius = isLocked ? targetRadius : 11;
+                    }
+                });
+            }
+        };
+
+        const showTooltip = (chart, element, event) => {
+            const ds = chart.data.datasets[element.datasetIndex];
+            if (ds.isHidden) return;
+            const dataPoint = ds.data[element.index];
+            tooltipEl.style.display = 'block';
+            tooltipEl.style.left = (event.x + 30) + 'px';
+            tooltipEl.style.top = (event.y + 30) + 'px';
+            const colorKey = ds.label.toLowerCase().replace('half-marathon', 'half').replace('marathon', 'marathon');
+            let content = `<span class="tooltip-title" style="color:${colors[colorKey] || '#38bdf8'}">${ds.label}</span>`;
+            if (dataPoint.label) content += `<em>${dataPoint.label}</em><br>`;
+            content += `Date: <strong>${dataPoint.x}</strong><br>`;
+            content += ds.label === 'Ultras' ? `Distance: <strong>${dataPoint.y} mi` : `Time: <strong>${formatTime(dataPoint.y)}</strong>`;
+            tooltipEl.innerHTML = content;
+        };
+
+        const canvasCtx = document.getElementById('performanceChart').getContext('2d');
+
+        const distanceLabel = { Marathon: 'Marathon', 'Half-Marathon': 'Half-Marathon', '5K': '5K', Mile: 'Mile' };
+
+        const medalSVG = {
+            gold: `<svg width="22" height="28" viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg" title="Gold — Current PR">
+                <path d="M5 17 L1 27 L8 23 L11 27 L11 17" fill="#c1121f"/>
+                <path d="M17 17 L21 27 L14 23 L11 27 L11 17" fill="#9d0208"/>
+                <circle cx="11" cy="10" r="9.5" fill="#FFD700" stroke="#B8860B" stroke-width="1.2"/>
+                <circle cx="11" cy="10" r="6.5" fill="none" stroke="#B8860B" stroke-width="0.8"/>
+            </svg>`,
+            silver: `<svg width="22" height="28" viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg" title="Silver — 2nd fastest">
+                <path d="M5 17 L1 27 L8 23 L11 27 L11 17" fill="#555"/>
+                <path d="M17 17 L21 27 L14 23 L11 27 L11 17" fill="#333"/>
+                <circle cx="11" cy="10" r="9.5" fill="#C0C0C0" stroke="#888" stroke-width="1.2"/>
+                <circle cx="11" cy="10" r="6.5" fill="none" stroke="#888" stroke-width="0.8"/>
+            </svg>`,
+            bronze: `<svg width="22" height="28" viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg" title="Bronze — 3rd fastest">
+                <path d="M5 17 L1 27 L8 23 L11 27 L11 17" fill="#5c3317"/>
+                <path d="M17 17 L21 27 L14 23 L11 27 L11 17" fill="#3d2010"/>
+                <circle cx="11" cy="10" r="9.5" fill="#CD7F32" stroke="#8B5a1a" stroke-width="1.2"/>
+                <circle cx="11" cy="10" r="6.5" fill="none" stroke="#8B5a1a" stroke-width="0.8"/>
+            </svg>`
+        };
+
+        let tableSortDesc = true;
+
+        function buildTable(rows) {
+            const tbody = document.getElementById('race-table-body');
+            const sorted = [...rows].sort((a, b) => {
+                const diff = new Date(a.date) - new Date(b.date);
+                return tableSortDesc ? -diff : diff;
+            });
+            const header = document.getElementById('date-sort-header');
+            header.dataset.sort = tableSortDesc ? 'desc' : 'asc';
+            header.querySelector('.sort-arrow').textContent = tableSortDesc ? '↓' : '↑';
+            tbody.innerHTML = sorted.map(row => {
+                const isUltra = row.category === 'Ultras';
+                const timeStr = row.time > 0 ? formatTime(row.time) : '—';
+                const distStr = isUltra ? `${row.distance} mi` : (distanceLabel[row.category] || row.category);
+                const prCell = row.medal ? `<span class="ribbon">${medalSVG[row.medal]}</span>` : '';
+                const rowBgColors = { Mile: '#101413', '5K': '#131210', 'Half-Marathon': '#101214', Marathon: '#141011', Ultras: '#111013', Unsanctioned: '#101310' };
+                const rowBg = rowBgColors[row.category] ? `style="background:${rowBgColors[row.category]}"` : '';
+                return `<tr data-category="${row.category}" ${rowBg}>
+                    <td>${row.date}</td>
+                    <td>${row.name || '—'}</td>
+                    <td>${distStr}</td>
+                    <td>${timeStr}</td>
+                    <td class="pr-cell">${prCell}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        const categoryColor = (cat) => {
+            const map = { Marathon: colors.marathon, 'Half-Marathon': colors.half, '5K': colors['5k'], Mile: colors.mile, Ultras: colors.ultras };
+            return map[cat] || (cat === 'Unsanctioned' ? '#2e7d32' : '#888888');
+        };
+
+        const categoryDisplayName = (cat) => {
+            const names = { Marathon: 'Marathon', 'Half-Marathon': 'Half-Marathon', '5K': '5K', Mile: 'Mile', Ultras: 'Ultras' };
+            return names[cat] || cat;
+        };
+
+        const categoryOrder = ['Mile', '5K', '3.5M', '4M', '5M', '10K', '15K', '10M', '12M', 'Half-Marathon', 'Marathon', 'Ultras', 'Unsanctioned'];
+
+        function buildFilterPills(rows) {
+            const present = new Set(rows.map(r => r.category));
+            const categories = [
+                ...categoryOrder.filter(c => present.has(c)),
+                ...[...present].filter(c => !categoryOrder.includes(c)).sort()
+            ];
+            const hidden = new Set();
+            const container = document.getElementById('filter-pills');
+            const toggleAllBtn = document.getElementById('toggle-all-btn');
+
+            container.innerHTML = categories.map(cat => {
+                const color = categoryColor(cat);
+                return `<button class="filter-pill" data-cat="${cat}" style="color:${color};border-color:${color}">${categoryDisplayName(cat)}</button>`;
+            }).join('');
+
+            const updateToggleAllBtn = () => {
+                const anyHidden = hidden.size > 0;
+                const allHidden = hidden.size === categories.length;
+            toggleAllBtn.innerHTML = !anyHidden ? '&#x1F649;' : allHidden ? '&#x1F648;' : '&#x1F64A;';
+            };
+
+            const applyTableFilter = () => {
+                document.querySelectorAll('#race-table-body tr').forEach(tr => {
+                    tr.style.display = hidden.has(tr.dataset.category) ? 'none' : '';
+                });
+            };
+
+            container.querySelectorAll('.filter-pill').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const cat = btn.dataset.cat;
+                    if (hidden.has(cat)) {
+                        hidden.delete(cat);
+                        btn.classList.remove('inactive');
+                    } else {
+                        hidden.add(cat);
+                        btn.classList.add('inactive');
+                    }
+                    applyTableFilter();
+                    updateToggleAllBtn();
+                });
+            });
+
+            toggleAllBtn.addEventListener('click', () => {
+                const anyHidden = hidden.size > 0;
+                const pills = container.querySelectorAll('.filter-pill');
+                if (anyHidden) {
+                    // Show all
+                    hidden.clear();
+                    pills.forEach(btn => btn.classList.remove('inactive'));
+                } else {
+                    // Hide all
+                    categories.forEach(cat => hidden.add(cat));
+                    pills.forEach(btn => btn.classList.add('inactive'));
+                }
+                applyTableFilter();
+                updateToggleAllBtn();
+            });
+        }
+
+        async function init() {
+        const rows = await loadRaceData();
+        const raceData = buildRaceData(rows);
+        const prRows = computePRs(rows);
+        buildTable(prRows);
+        buildFilterPills(prRows);
+        document.getElementById('date-sort-header').addEventListener('click', () => {
+            tableSortDesc = !tableSortDesc;
+            buildTable(prRows);
+            const hiddenCats = new Set(
+                [...document.querySelectorAll('#filter-pills .filter-pill.inactive')].map(b => b.dataset.cat)
+            );
+            document.querySelectorAll('#race-table-body tr').forEach(tr => {
+                tr.style.display = hiddenCats.has(tr.dataset.category) ? 'none' : '';
+            });
+        });
+
+        const getDsMin = (data) => Math.min(...data.map(d => d.y));
+        const niceStep = (range) => {
+            const raw = range / 6;
+            const candidates = [1, 2, 5, 10, 15, 20, 30, 60, 90, 120, 180];
+            return candidates.find(c => c >= raw) || 180;
+        };
+        const updateXAxisScale = (ci) => {
+            const activeDatasets = ci.data.datasets.filter(d => !d.isHidden && d.data.length > 0);
+            if (activeDatasets.length === 0) {
+                ci.options.scales.x.min = undefined;
+                ci.options.scales.x.max = undefined;
+                return;
+            }
+            const allDates = activeDatasets.flatMap(d => d.data.map(p => new Date(p.x).getTime()));
+            const dateMin = Math.min(...allDates);
+            const dateMax = Math.max(...allDates);
+            const datePadding = (dateMax - dateMin) * 0.04;
+            ci.options.scales.x.min = dateMin - datePadding;
+            ci.options.scales.x.max = dateMax + datePadding;
+        };
+        const updateLeftAxisScale = (ci) => {
+            const activeTimeDatasets = [0, 1, 2, 3].map(i => ci.data.datasets[i]).filter(d => !d.isHidden);
+            let min, max, stepSize;
+            if (activeTimeDatasets.length === 0) {
+                stepSize = niceStep(initialMaxFallback);
+                min = 0;
+                max = initialMaxFallback;
+            } else {
+                const currentMaxVal = Math.max(...activeTimeDatasets.map(d => d.dataMax));
+                const currentMinVal = Math.min(...activeTimeDatasets.map(d => d.dataMin));
+                stepSize = niceStep(currentMaxVal - currentMinVal);
+                min = Math.floor(currentMinVal / stepSize) * stepSize;
+                max = Math.ceil(currentMaxVal / stepSize) * stepSize + stepSize;
+            }
+            ci.options.scales.yLeft.min = min;
+            ci.options.scales.yLeft.max = max;
+            ci.options.scales.yLeft.ticks.stepSize = stepSize;
+        };
+
+        const chart = new Chart(canvasCtx, {
+            type: 'line',
+            data: {
+                datasets: [
+                    { label: 'Mile', pointStyle: 'rectRot', data: raceData['Mile'], borderColor: colors.mile, backgroundColor: colors.mile, tension: 0, yAxisID: 'yLeft', baseColor: colors.mile, dataMax: getDsMax(raceData['Mile']), dataMin: getDsMin(raceData['Mile']) },
+                    { label: '5K', pointStyle: 'triangle', data: raceData['5K'], borderColor: colors['5k'], backgroundColor: colors['5k'], tension: 0, yAxisID: 'yLeft', baseColor: colors['5k'], dataMax: getDsMax(raceData['5K']), dataMin: getDsMin(raceData['5K']) },
+                    { label: 'Half-Marathon', pointStyle: 'rect', data: raceData['Half-Marathon'], borderColor: colors.half, backgroundColor: colors.half, tension: 0, yAxisID: 'yLeft', baseColor: colors.half, dataMax: getDsMax(raceData['Half-Marathon']), dataMin: getDsMin(raceData['Half-Marathon']) },
+                    { label: 'Marathon', pointStyle: 'circle', data: raceData['Marathon'], borderColor: colors.marathon, backgroundColor: colors.marathon, tension: 0, yAxisID: 'yLeft', baseColor: colors.marathon, dataMax: getDsMax(raceData['Marathon']), dataMin: getDsMin(raceData['Marathon']) },
+                    {
+                        label: 'Ultras',
+                        data: raceData['Ultras'],
+                        pointStyle: starIconNormal,
+                        pointRadius: 12,
+                        pointHitRadius: 15,
+                        showLine: false,
+                        borderColor: colors.ultras,
+                        backgroundColor: colors.ultras,
+                        yAxisID: 'yRight',
+                        baseColor: colors.ultras
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'nearest', intersect: true },
+                elements: { point : { radius: 8, hoverRadius: 11, hitRadius: 12 } },
+                plugins: {
+                    tooltip: { enabled: false },
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 25,
+                            font: { size: 12, weight: '600' },
+                            generateLabels: (chart) => {
+                                const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
+                                return labels.map(l => {
+                                    const ds = chart.data.datasets[l.datasetIndex];
+
+                                    // Use dataset's state directly
+                                    if (ds.isHidden) {
+                                        l.fontColor = '#94a3b8';
+                                        l.fillStyle = 'rgba(148, 163, 184, 0.4)';
+                                        l.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+                                        l.hidden = true; // Sync legend item state
+                                    } else {
+                                        l.fontColor = '#e8e4dc';
+                                        l.fillStyle = ds.baseColor;
+                                        l.strokeStyle = ds.baseColor;
+                                        l.hidden = false;
+                                    }
+
+                                    if (ds.label === 'Ultras') {
+                                        l.pointStyle = starIconNormal;
+                                    } else {
+                                        l.pointStyle = ds.pointStyle;
+                                    }
+                                    return l;
+                                });
+                            }
+                        },
+                        onClick: (e, item, legend) => {
+                            const ds = legend.chart.data.datasets[item.datasetIndex];
+                            ds.isHidden = !ds.isHidden;
+
+                            // Visual update for dataset lines
+                            const alpha = ds.isHidden ? 0 : 1;
+                            ds.borderColor = hexToRgba(ds.baseColor, alpha);
+                            ds.backgroundColor = hexToRgba(ds.baseColor, alpha);
+
+                            updateLeftAxisScale(legend.chart);
+                            updateXAxisScale(legend.chart);
+                            // Trigger full update so the legendBoxPlugin sees the new state
+                            legend.chart.update();
+                        }
+                    }
+                },
+                onHover: (event, elements) => {
+                    if (isLocked) return;
+                    if (elements.length > 0) {
+                        const el = elements[0];
+                        const ds = chart.data.datasets[el.datasetIndex];
+                        if (ds.isHidden) return;
+
+                        hoveredPoint = { datasetIndex: el.datasetIndex, index: el.index };
+                        showTooltip(chart, el, event);
+                        canvasCtx.canvas.style.cursor = 'pointer';
+                    } else {
+                        hoveredPoint = null;
+                        tooltipEl.style.display = 'none';
+                        canvasCtx.canvas.style.cursor = 'default';
+                    }
+                    chart.draw();
+                },
+                onClick: (event, elements) => {
+                    if (elements.length > 0) {
+                        const el = elements[0];
+                        const ds = chart.data.datasets[el.datasetIndex];
+                        if (!ds.isHidden) {
+                            isLocked = true;
+                            lockedPoint = { datasetIndex: el.datasetIndex, index: el.index };
+                            showTooltip(chart, el, event);
+                        }
+                    } else {
+                        isLocked = false;
+                        lockedPoint = null;
+                        tooltipEl.style.display = 'none';
+                    }
+                    chart.update();
+                },
+                scales: {
+                    x: { type: 'time', time: { unit: 'year' }, grid: { color: 'rgba(180, 180, 180, 0.2)' }, ticks: { color: '#a0a0a0' } },
+                    yLeft: { position: 'left', title: { display: true, text: 'Time', color: '#a0a0a0' }, ticks: { callback: v => formatTime(v), color: '#a0a0a0' }, grid: { color: 'rgba(180, 180, 180, 0.2)' } },
+                    yRight: { position: 'right', title: { display: true, text: 'Distance (ultras)', color: '#a0a0a0' }, beginAtZero: true, ticks: { stepSize: 25, color: '#a0a0a0' }, max: 125, grid: { drawOnChartArea: false } }
+                }
+            },
+            plugins: [legendBoxPlugin, visualControllerPlugin, {
+                id: 'initLogic',
+                beforeInit: (ci) => {
+                    updateLeftAxisScale(ci);
+                    initialMaxFallback = ci.options.scales.yLeft.max;
+                }
+            }]
+        });
+
+        const allYears = rows.map(r => new Date(r.date).getFullYear());
+        const dataMinYear = Math.min(...allYears);
+        const dataMaxYear = Math.max(...allYears);
+
+        const minSlider = document.getElementById('year-min-slider');
+        const minLabel = document.getElementById('year-min-label');
+        const trackFill = document.getElementById('range-track-fill');
+        const FIXED_MAX = 2026;
+
+        const FIXED_MIN = 2010;
+        minSlider.min = FIXED_MIN;
+        minSlider.max = FIXED_MAX;
+        minSlider.value = 2019;
+
+        const updateTrackFill = () => {
+            const min = parseInt(minSlider.value);
+            const range = FIXED_MAX - FIXED_MIN;
+            const leftPct = ((min - FIXED_MIN) / range) * 100;
+            trackFill.style.left = leftPct + '%';
+            trackFill.style.right = '0%';
+        };
+
+        const applyYearFilter = () => {
+            const minYear = parseInt(minSlider.value);
+            minLabel.textContent = minYear;
+            updateTrackFill();
+
+            const filtered = buildRaceData(rows.filter(r => {
+                const y = new Date(r.date).getFullYear();
+                return y >= minYear && y <= FIXED_MAX;
+            }));
+            const labels = ['Mile', '5K', 'Half-Marathon', 'Marathon', 'Ultras'];
+            chart.data.datasets.forEach((ds, i) => {
+                const d = filtered[labels[i]] || [];
+                ds.data = d;
+                ds.dataMax = d.length ? getDsMax(d) : 0;
+                ds.dataMin = d.length ? getDsMin(d) : 0;
+            });
+            updateXAxisScale(chart);
+            updateLeftAxisScale(chart);
+            chart.update();
+        };
+
+        minSlider.addEventListener('input', applyYearFilter);
+
+        document.getElementById('year-minus-btn').addEventListener('click', () => {
+            const val = parseInt(minSlider.value);
+            if (val > 2010) {
+                minSlider.value = val - 1;
+                applyYearFilter();
+            }
+        });
+        document.getElementById('year-plus-btn').addEventListener('click', () => {
+            const val = parseInt(minSlider.value);
+            if (val < FIXED_MAX) {
+                minSlider.value = val + 1;
+                applyYearFilter();
+            }
+        });
+
+        applyYearFilter();
+        } // end init()
+
+        init();
+    </script>
+</body>
+
+</html>
