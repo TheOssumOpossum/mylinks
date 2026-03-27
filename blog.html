@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Running Journey</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,200&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --line: #2a2a2a;
+    --text: #e8e4dc;
+    --muted: #5a5a5a;
+    --dim: #3a3a3a;
+    --lit: #a0a0a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+    font-weight: normal;
+    min-height: 120vh;
+    /* font-size: 12px; */
+    overflow-x: hidden;
+    max-width: 1200px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  header {
+    padding: 80px 60px 0px 120px;
+    position: relative;
+  }
+
+  /* .eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: #5a5a5a;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  } */
+
+  h1 {
+    font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+    font-size: clamp(42px, 4vw, 80px);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--text);
+    margin-bottom: 28px;
+  }
+
+  .intro {
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--lit);
+    max-width: 520px;
+    font-weight: 300;
+  }
+
+  .timeline-wrap {
+    padding: 20px 0 50vh 120px;
+    position: relative;
+  }
+
+  /* .timeline-wrap::before {
+    content: '';
+    position: absolute;
+    left: 120px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--line) 3%, var(--line) 97%, transparent);
+  } */
+
+  .entry {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    position: relative;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateX(-8px);
+    animation: reveal 0.35s forwards;
+    animation-play-state: paused;
+  }
+
+  @keyframes reveal {
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  /* .entry::before {
+    content: '';
+    position: absolute;
+    left: -7px;
+    top: 26px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--dim);
+    border: 1px solid var(--line);
+    transition: background 0.2s, transform 0.2s;
+    z-index: 1;
+  } */
+
+  .entry-label {
+    padding: 16px 32px 16px 0;
+    text-align: right;
+    user-select: none;
+  }
+
+  .entry-date {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 0.05em;
+    color: var(--dim);
+    line-height: 1.2;
+    transition: color 0.25s;
+  }
+
+  .entry-subheader {
+    font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 300;
+    color: var(--dim);
+    line-height: 1.4;
+    margin-top: 3px;
+    transition: color 0.25s;
+  }
+
+  .entry-content {
+    padding: 16px 60px 16px 32px;
+    border-left: 2px solid transparent;
+    transition: background 0.25s, border-color 0.25s;
+  }
+
+  .entry-blurb {
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--dim);
+    font-weight: 300;
+    transition: color 0.25s;
+  }
+
+
+  /* Separator */
+  .separator {
+    padding: 8px 0 8px;
+    user-select: none;
+    cursor: default;
+  }
+
+  .separator-label {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-right: 60px;
+  }
+
+  .separator-label::before,
+  .separator-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #222;
+  }
+
+  .separator-label::before {
+    max-width: 220px;
+  }
+
+  .separator-text {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+  }
+
+  @media (max-width: 640px) {
+    .separator-label::before {
+      max-width: none;
+    }
+    .separator-label {
+      padding-right: 24px;
+    }
+  }
+
+  /* Active: one at a time */
+  .entry.active::before {
+    background: var(--lit);
+    transform: scale(1.6);
+  }
+
+  .entry.active .entry-date,
+  .entry.active .entry-subheader,
+  .entry.active .entry-blurb {
+    color: var(--lit);
+  }
+
+  .entry.active .entry-content {
+    background: #141414;
+    border-left-color: var(--dim);
+  }
+
+  /* Hover — desktop only, overrides active */
+  @media (hover: hover) {
+    .entry:hover::before {
+      background: #606060 !important;
+      transform: scale(1.3) !important;
+      box-shadow: none !important;
+    }
+    .entry:hover .entry-date,
+    .entry:hover .entry-subheader,
+    .entry:hover .entry-blurb {
+      color: var(--lit) !important;
+    }
+    .entry:hover .entry-content {
+      background: #111111 !important;
+      border-left-color: #2a2a2a !important;
+    }
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.2em;
+  }
+
+  @media (max-width: 640px) {
+    header {
+      padding: 50px 24px 40px 60px;
+    }
+    header::after {
+      font-size: 70px;
+      right: 16px;
+      top: 20px;
+    }
+    .timeline-wrap {
+      padding: 20px 24px 50vh 60px;
+    }
+    .timeline-wrap::before {
+      left: 60px;
+    }
+    .entry {
+      grid-template-columns: 1fr;
+    }
+    .entry-label {
+      text-align: left;
+      padding: 12px 0 2px;
+    }
+    .entry-date {
+      font-size: 22px;
+    }
+    .entry-content {
+      padding: 6px 16px 6px 32px;
+    }
+  }
+
+/* The Floating Button Container */
+.back-button-container {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* Centers the wrapper */
+    width: 100%;
+    max-width: 1200px; /* Matches the content width */
+    pointer-events: none; /* Prevents the invisible wrapper from blocking clicks */
+    z-index: 1000;
+}
+
+/* The Button Style */
+.back-btn {
+    float: right;
+    background-color: #222;
+    color: var(--lit);
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: bold;
+    /* box-shadow: 0 4px 6px rgba(0,0,0,0.2); */
+    transition: background 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-family: ui-rounded, 'Hiragino Maru Gothic ProN', Quicksand, Comfortaa, Manjari, 'Arial Rounded MT', 'Arial Rounded MT Bold', Calibri, source-sans-pro, sans-serif;
+}
+
+.back-btn:hover {
+    background-color: #333;
+}
+</style>
+</head>
+<body>
+
+<div class="back-button-container">
+    <a href="index.html" target="_blank" rel="noopener">
+        <button class="back-btn">← Back</button>
+    </a>
+</div>
+
+<header>
+  <h1>When did you start running?</h1>
+  <p class="intro">That's a question I get a lot and it's one I don't know how to answer. <br> My running journey has been very long and it's had many ups and downs.<br> So here's the full story:<p>
+</header>
+
+<div class="timeline-wrap">
+
+
+  <div class="separator"><div class="separator-label"><span class="separator-text">Elementary School</span></div></div>
+
+  <div class="entry" style="animation-delay:0.05s">
+    <div class="entry-label">
+      <div class="entry-date">2001–2007</div>
+      <div class="entry-subheader">The fast kid</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Soccer, wrestling, baseball, flag football; I played a lot of sports and was "the fast kid"</div>
+    </div>
+  </div>
+
+
+  <div class="separator"><div class="separator-label"><span class="separator-text">Middle School</span></div></div>
+
+  <div class="entry" style="animation-delay:0.1s">
+    <div class="entry-label">
+      <div class="entry-date">2008–2010</div>
+      <div class="entry-subheader">The short kid</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">I started running competitively in middle school. I wasn't very good, puberty was not kind to me. I did cross country + track</div>
+    </div>
+  </div>
+
+
+  <div class="separator"><div class="separator-label"><span class="separator-text">High School</span></div></div>
+
+  <div class="entry" style="animation-delay:0.15s">
+    <div class="entry-label">
+      <div class="entry-date">2011</div>
+      <div class="entry-subheader">Freshman year</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">I continued with cross country and track (distance), 21:48 5k, 5:45 mile</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.2s">
+    <div class="entry-label">
+      <div class="entry-date">2012</div>
+      <div class="entry-subheader">Sophomore year</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">I quit running after my second year of cross country. 20:48 5k. Decided to focus exclusively on wrestling</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.25s">
+    <div class="entry-label">
+      <div class="entry-date">2012–2014</div>
+      <div class="entry-subheader">Wrestling years</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">I didn't run</div>
+    </div>
+  </div>
+
+
+  <div class="separator"><div class="separator-label"><span class="separator-text">College</span></div></div>
+
+  <div class="entry" style="animation-delay:0.3s">
+    <div class="entry-label">
+      <div class="entry-date">2015–2018</div>
+      <div class="entry-subheader">College years</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">I only ran casually and was very inconsistent, My 5k time dropped to 23m I lost a lot of fitness</div>
+    </div>
+  </div>
+
+
+  <div class="separator"><div class="separator-label"><span class="separator-text">Post-College</span></div></div>
+
+  <div class="entry" style="animation-delay:0.35s">
+    <div class="entry-label">
+      <div class="entry-date">2018</div>
+      <div class="entry-subheader">First adult race</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Signed up for a 15k and started training again</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.4s">
+    <div class="entry-label">
+      <div class="entry-date">2019</div>
+      <div class="entry-subheader">Marathon debut</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Ran the Chicago Marathon with a training group, 3h48m</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.45s">
+    <div class="entry-label">
+      <div class="entry-date">2020–2021</div>
+      <div class="entry-subheader">COVID & injuries</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Stopped running during COVID due to injury & laziness, this was the most out of shape I've ever been</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.5s">
+    <div class="entry-label">
+      <div class="entry-date">2021</div>
+      <div class="entry-subheader">The comeback</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Started running again. Raced a proper half-marathon after 6 months of nonstop training, 1h39m</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.55s">
+    <div class="entry-label">
+      <div class="entry-date">2022</div>
+      <div class="entry-subheader">Consistency</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Started running consistently with coworkers. Completed the 9+1 program for the first time. First year running more than 1,000 miles</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.6s">
+    <div class="entry-label">
+      <div class="entry-date">2023</div>
+      <div class="entry-subheader">Marathon return</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">Return to the marathon after 3.5 years, 3h29m. Joined my first run club outside of work</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.65s">
+    <div class="entry-label">
+      <div class="entry-date">2024</div>
+      <div class="entry-subheader">Discovering Ultras</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">First ultramarathon: the Manhattan Perimeter. 3 more ultras and 2 marathons in the same year</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.7s">
+    <div class="entry-label">
+      <div class="entry-date">2025</div>
+      <div class="entry-subheader">The run club era</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">First 100-mile race. Joined many more run clubs to help with training. Started posting to TikTok</div>
+    </div>
+  </div>
+
+  <div class="entry" style="animation-delay:0.75s">
+    <div class="entry-label">
+      <div class="entry-date">2026</div>
+      <div class="entry-subheader">Getting experimental</div>
+    </div>
+    <div class="entry-content">
+      <div class="entry-blurb">who knows what's next?</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const entries = document.querySelectorAll('.entry');
+
+  function applyScrollHighlight() {
+    const mid = window.innerHeight / 2;
+    let best = null;
+    let bestDist = Infinity;
+    entries.forEach(entry => {
+      const rect = entry.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      const dist = Math.abs((rect.top + rect.height / 2) - mid);
+      if (dist < bestDist) { bestDist = dist; best = entry; }
+    });
+    if (!best) return;
+    if (best.classList.contains('active')) return;
+    entries.forEach(e => e.classList.remove('active'));
+    best.classList.add('active');
+  }
+
+  const separators = document.querySelectorAll('.separator');
+  let hovering = false;
+
+  function setActive(entry) {
+    entries.forEach(e => e.classList.remove('active'));
+    if (entry) entry.classList.add('active');
+  }
+
+  function nextEntry(el) {
+    let sib = el.nextElementSibling;
+    while (sib) {
+      if (sib.classList.contains('entry')) return sib;
+      sib = sib.nextElementSibling;
+    }
+    return null;
+  }
+
+  entries.forEach(entry => {
+    entry.addEventListener('mouseenter', () => {
+      hovering = true;
+      setActive(null);
+    });
+    entry.addEventListener('mouseleave', () => {
+      hovering = false;
+      applyScrollHighlight();
+    });
+  });
+
+  separators.forEach(sep => {
+    sep.addEventListener('mouseenter', () => {
+      hovering = true;
+      setActive(nextEntry(sep));
+    });
+    sep.addEventListener('mouseleave', () => {
+      hovering = false;
+      applyScrollHighlight();
+    });
+  });
+
+  window.addEventListener('scroll', () => {
+    if (!hovering) applyScrollHighlight();
+  }, { passive: true });
+  applyScrollHighlight();
+
+  // --- Scroll reveal (reuse same observer threshold) ---
+  const revealObserver = new IntersectionObserver((items) => {
+    items.forEach(item => {
+      if (item.isIntersecting) {
+        item.target.style.animationPlayState = 'running';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  entries.forEach(entry => revealObserver.observe(entry));
+</script>
+
+</body>
+</html>
