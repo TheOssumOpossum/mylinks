@@ -131,6 +131,8 @@
             width: 100%;
             max-width: 950px;
             margin-top: 24px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .table-header {
@@ -168,6 +170,7 @@
 
         .filter-pill.inactive {
             opacity: 0.3;
+            text-decoration: line-through;
         }
 
         .year-range-wrapper {
@@ -271,6 +274,7 @@
 
         #race-table {
             width: 100%;
+            min-width: 560px;
             border-collapse: collapse;
             font-size: 14px;
             table-layout: fixed;
@@ -347,17 +351,17 @@
             <div id="custom-tooltip"></div>
             <canvas id="performanceChart"></canvas>
         </div>
-        <div class="year-range-wrapper">
-            <button class="year-step-btn" id="year-minus-btn">−</button>
-            <span class="year-label" id="year-min-label">—</span>
-            <div class="year-range-track">
-                <div id="range-track-bg"></div>
-                <div id="range-track-fill"></div>
-                <input type="range" id="year-min-slider" step="1">
-            </div>
-            <span class="year-label">2026</span>
-            <button class="year-step-btn" id="year-plus-btn">+</button>
+    </div>
+    <div class="year-range-wrapper">
+        <button class="year-step-btn" id="year-minus-btn">−</button>
+        <span class="year-label" id="year-min-label">—</span>
+        <div class="year-range-track">
+            <div id="range-track-bg"></div>
+            <div id="range-track-fill"></div>
+            <input type="range" id="year-min-slider" step="1">
         </div>
+        <span class="year-label">2026</span>
+        <button class="year-step-btn" id="year-plus-btn">+</button>
     </div>
 
     <div class="table-wrapper">
@@ -644,7 +648,7 @@
             tbody.innerHTML = sorted.map(row => {
                 const isUltra = row.category === 'Ultras';
                 const timeStr = row.time > 0 ? formatTime(row.time) : '—';
-                const distStr = isUltra ? `${row.distance} mi` : (distanceLabel[row.category] || row.category);
+                const distStr = isUltra ? `Ultra: ${row.distance} mi` : (distanceLabel[row.category] || row.category);
                 const prCell = row.medal ? `<span class="ribbon">${medalSVG[row.medal]}</span>` : '';
                 const rowBgColors = { Mile: '#101413', '5K': '#131210', 'Half-Marathon': '#101214', Marathon: '#141011', Ultras: '#111013', Unsanctioned: '#101310' };
                 const rowBg = rowBgColors[row.category] ? `style="background:${rowBgColors[row.category]}"` : '';
@@ -676,13 +680,15 @@
                 ...categoryOrder.filter(c => present.has(c)),
                 ...[...present].filter(c => !categoryOrder.includes(c)).sort()
             ];
-            const hidden = new Set();
+            const defaultHidden = new Set(['3.5M', '4M', '5M', '10K', '15K', '10M', 'Unsanctioned']);
+            const hidden = new Set(categories.filter(c => defaultHidden.has(c)));
             const container = document.getElementById('filter-pills');
             const toggleAllBtn = document.getElementById('toggle-all-btn');
 
             container.innerHTML = categories.map(cat => {
                 const color = categoryColor(cat);
-                return `<button class="filter-pill" data-cat="${cat}" style="color:${color};border-color:${color}">${categoryDisplayName(cat)}</button>`;
+                const inactiveClass = hidden.has(cat) ? ' inactive' : '';
+                return `<button class="filter-pill${inactiveClass}" data-cat="${cat}" style="color:${color};border-color:${color}">${categoryDisplayName(cat)}</button>`;
             }).join('');
 
             const updateToggleAllBtn = () => {
@@ -696,6 +702,9 @@
                     tr.style.display = hidden.has(tr.dataset.category) ? 'none' : '';
                 });
             };
+
+            applyTableFilter();
+            updateToggleAllBtn();
 
             container.querySelectorAll('.filter-pill').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -972,6 +981,17 @@
         });
 
         applyYearFilter();
+
+        // On load, show only Marathon and Half-Marathon
+        [0, 1, 4].forEach(i => {
+            const ds = chart.data.datasets[i];
+            ds.isHidden = true;
+            ds.borderColor = hexToRgba(ds.baseColor, 0);
+            ds.backgroundColor = hexToRgba(ds.baseColor, 0);
+        });
+        updateLeftAxisScale(chart);
+        updateXAxisScale(chart);
+        chart.update();
         } // end init()
 
         init();
