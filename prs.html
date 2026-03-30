@@ -58,7 +58,6 @@
 
         .chart-container {
             width: 100%;
-            min-width: 600px;
             height: 550px;
             border-radius: 12px;
             padding: 24px;
@@ -181,11 +180,16 @@
             margin-top: 12px;
             color: var(--lit);
             font-size: 13px;
+            width: 100%;
+            max-width: 950px;
         }
 
         .year-range-track {
             position: relative;
             width: 260px;
+            flex: 1 1 80px;
+            min-width: 60px;
+            max-width: 260px;
             height: 20px;
         }
 
@@ -274,7 +278,6 @@
 
         #race-table {
             width: 100%;
-            min-width: 560px;
             border-collapse: collapse;
             font-size: 14px;
             table-layout: fixed;
@@ -333,6 +336,46 @@
         .ribbon svg {
             display: block;
             margin: 0 auto;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            .chart-container {
+                height: 320px;
+                padding: 12px;
+            }
+
+            .chart-title {
+                font-size: 18px;
+            }
+
+
+            #race-table th:nth-child(1), #race-table td:nth-child(1) { width: 72px; }
+            #race-table th:nth-child(3), #race-table td:nth-child(3) { width: 80px; }
+            #race-table th:nth-child(4), #race-table td:nth-child(4) { width: 68px; }
+            #race-table th:nth-child(5), #race-table td:nth-child(5) { width: 36px; }
+
+            #race-table th,
+            #race-table td {
+                padding: 0 6px;
+                height: 38px;
+                font-size: 12px;
+            }
+
+            #race-table th {
+                font-size: 10px;
+            }
+
+            #race-table td:first-child {
+                font-size: 11px;
+            }
+
+            .table-title {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
