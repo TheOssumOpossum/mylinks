@@ -178,7 +178,7 @@
             }
         }
 
-        /* Active: one at a time */
+        /* Active: closest to viewport center */
         .entry.active::before {
             background: var(--lit);
             transform: scale(1.6);
@@ -195,25 +195,17 @@
             border-left-color: var(--dim);
         }
 
-        /* Hover — desktop only, overrides active */
-        @media (hover: hover) {
-            .entry:hover::before {
-                background: #606060 !important;
-                transform: scale(1.3) !important;
-                box-shadow: none !important;
-            }
-
-            .entry:hover .entry-date,
-            .entry:hover .entry-subheader,
-            .entry:hover .entry-blurb {
-                color: var(--lit) !important;
-            }
-
-            .entry:hover .entry-content {
-                background: #111111 !important;
-                border-left-color: #2a2a2a !important;
-            }
+        /* Near: entries adjacent to the active one */
+        .entry.near::before {
+            background: #6a6a6a;
         }
+
+        .entry.near .entry-date,
+        .entry.near .entry-subheader,
+        .entry.near .entry-blurb {
+            color: #6a6a6a;
+        }
+
 
         @media (max-width: 640px) {
             header {
@@ -611,109 +603,52 @@
         const entries = document.querySelectorAll('.entry');
 
         function applyScrollHighlight() {
-            const container = document.querySelector('.timeline-wrap');
-            if (!container) return;
+            const allEntries = Array.from(entries);
+            const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+            const scrollProgress = maxScroll > 0 ? window.scrollY / maxScroll : 0;
 
-            const rect = container.getBoundingClientRect();
-            const winHeight = window.innerHeight;
-
-            // 1. Calculate progress within the timeline-wrap
-            // 'start' is when the top of the container hits the top of the screen
-            // 'end' is when the bottom of the container hits the bottom of the screen
-            const totalArea = rect.height - winHeight;
-
-            // If the timeline hasn't scrolled into view yet, clear any highlight
-            if (rect.top >= 0) {
-                entries.forEach(e => e.classList.remove('active'));
+            // Near the very bottom, force last two entries active/near
+            if (scrollProgress >= 0.99) {
+                entries.forEach(e => { e.classList.remove('active'); e.classList.remove('near'); });
+                allEntries[allEntries.length - 1].classList.add('active');
+                if (allEntries.length > 1) allEntries[allEntries.length - 2].classList.add('near');
+                return;
+            }
+            if (scrollProgress >= 0.95) {
+                entries.forEach(e => { e.classList.remove('active'); e.classList.remove('near'); });
+                allEntries[allEntries.length - 2].classList.add('active');
+                allEntries[allEntries.length - 1].classList.add('near');
+                if (allEntries.length > 2) allEntries[allEntries.length - 3].classList.add('near');
                 return;
             }
 
-            // We clamp the value between 0 and 1 so it doesn't "break"
-            // while we are in the header or footer.
-            let progress = -rect.top / totalArea;
-            progress = Math.max(0, Math.min(1, progress));
-
-            // 2. Map progress to the Viewport Height
-            // This is our "Target Y" where we expect the user's eye to be
-            const targetY = progress * winHeight;
-
-            // Only highlight entries within a proximity threshold of targetY
-            const proximityThreshold = winHeight * 0.35;
+            // Target Y slides from 20% of viewport height at page-top to 80% at page-bottom,
+            // so the first/last entries are naturally active at the extremes.
+            const targetY = window.innerHeight * (0.2 + scrollProgress * 0.6);
 
             let best = null;
             let bestDist = Infinity;
 
-            // 3. Find the entry closest to that Target Y
-            entries.forEach(entry => {
-                const entryRect = entry.getBoundingClientRect();
-
-                // Skip if completely off-screen
-                if (entryRect.bottom < 0 || entryRect.top > winHeight) return;
-
-                const elementMid = entryRect.top + entryRect.height / 2;
-                const dist = Math.abs(elementMid - targetY);
-
-                if (dist < bestDist) {
-                    bestDist = dist;
-                    best = entry;
-                }
+            allEntries.forEach(entry => {
+                const r = entry.getBoundingClientRect();
+                if (r.bottom < 0 || r.top > window.innerHeight) return;
+                const mid = r.top + r.height / 2;
+                const dist = Math.abs(mid - targetY);
+                if (dist < bestDist) { bestDist = dist; best = entry; }
             });
 
-            // Only highlight if the best match is close enough
-            if (!best || bestDist > proximityThreshold) {
-                entries.forEach(e => e.classList.remove('active'));
-                return;
-            }
+            entries.forEach(e => { e.classList.remove('active'); e.classList.remove('near'); });
 
-            if (best.classList.contains('active')) return;
+            if (!best) return;
 
-            entries.forEach(e => e.classList.remove('active'));
             best.classList.add('active');
+            const idx = allEntries.indexOf(best);
+            if (idx > 0) allEntries[idx - 1].classList.add('near');
+            if (idx < allEntries.length - 1) allEntries[idx + 1].classList.add('near');
         }
 
 
-        const separators = document.querySelectorAll('.separator');
-        let hovering = false;
-
-        function setActive(entry) {
-            entries.forEach(e => e.classList.remove('active'));
-            if (entry) entry.classList.add('active');
-        }
-
-        function nextEntry(el) {
-            let sib = el.nextElementSibling;
-            while (sib) {
-                if (sib.classList.contains('entry')) return sib;
-                sib = sib.nextElementSibling;
-            }
-            return null;
-        }
-
-        entries.forEach(entry => {
-            entry.addEventListener('mouseenter', () => {
-                hovering = true;
-                setActive(null);
-            });
-            entry.addEventListener('mouseleave', () => {
-                hovering = false;
-                applyScrollHighlight();
-            });
-        });
-
-        separators.forEach(sep => {
-            sep.addEventListener('mouseenter', () => {
-                hovering = true;
-                setActive(nextEntry(sep));
-            });
-            sep.addEventListener('mouseleave', () => {
-                hovering = false;
-                applyScrollHighlight();
-            });
-        });
-
-        window.addEventListener('scroll', () => {
-            if (!hovering) applyScrollHighlight();
-        }, { passive: true });
+        window.addEventListener('scroll', applyScrollHighlight, { passive: true });
         applyScrollHighlight();
 
         // --- Scroll reveal (reuse same observer threshold) ---
