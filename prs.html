@@ -87,6 +87,7 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(4px);
+            white-space: nowrap;
         }
 
         .tooltip-title {
@@ -98,10 +99,22 @@
             color: #38bdf8;
         }
 
+        /* The Floating Button Container */
+        .back-button-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1000px;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
         /* The Button Style */
         .back-btn {
             pointer-events: auto;
-            flex-shrink: 0;
+            float: right;
             background-color: #222;
             color: var(--lit);
             padding: 10px 20px;
@@ -119,7 +132,7 @@
             background-color: #333;
         }
 
-        .chart-title {
+        .section-title {
             color: var(--text);
             font-size: 28px;
             font-weight: 700;
@@ -142,10 +155,7 @@
             margin-bottom: 12px;
         }
 
-        .table-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
+        .table-header .section-title {
             flex-shrink: 0;
         }
 
@@ -348,7 +358,7 @@
                 padding: 12px;
             }
 
-            .chart-title {
+            .section-title {
                 font-size: 18px;
             }
 
@@ -373,20 +383,18 @@
                 font-size: 11px;
             }
 
-            .table-title {
-                font-size: 16px;
-            }
         }
     </style>
 </head>
 
 <body>
-    <div class="page-header">
-        <h2 class="chart-title">Progression of Running PRs and Ultras</h2>
+    <div class="back-button-container">
         <a href="index.html"
-           class="button back-btn"
-           target="_blank"
-           rel="noopener">← Back</a>
+           class="button back-btn">← Back</a>
+    </div>
+
+    <div class="page-header">
+        <h2 class="section-title">Progression of Running PRs and Ultras</h2>
     </div>
 
     <div class="chart-scroll-wrapper">
@@ -409,7 +417,7 @@
 
     <div class="table-wrapper">
         <div class="table-header">
-            <h3 class="table-title">All my races + Ultras</h3>
+            <h2 class="section-title">All my races + Ultras</h2>
             <button id="toggle-all-btn" class="filter-pill" style="color:var(--lit);border-color:var(--muted)">&#x1F649;</button>
             <div id="filter-pills"></div>
         </div>
@@ -642,14 +650,18 @@
             if (ds.isHidden) return;
             const dataPoint = ds.data[element.index];
             tooltipEl.style.display = 'block';
-            tooltipEl.style.left = (event.x + 30) + 'px';
-            tooltipEl.style.top = (event.y + 30) + 'px';
             const colorKey = ds.label.toLowerCase().replace('half-marathon', 'half').replace('marathon', 'marathon');
             let content = `<span class="tooltip-title" style="color:${colors[colorKey] || '#38bdf8'}">${ds.label}</span>`;
             if (dataPoint.label) content += `<em>${dataPoint.label}</em><br>`;
             content += `Date: <strong>${dataPoint.x}</strong><br>`;
             content += ds.label === 'Ultras' ? `Distance: <strong>${dataPoint.y} mi` : `Time: <strong>${formatTime(dataPoint.y)}</strong>`;
             tooltipEl.innerHTML = content;
+            const ttWidth = tooltipEl.offsetWidth;
+            const leftRaw = event.x + 30;
+            const containerWidth = tooltipEl.parentElement.offsetWidth;
+            const leftClamped = Math.min(leftRaw, containerWidth - ttWidth - 8);
+            tooltipEl.style.left = leftClamped + 'px';
+            tooltipEl.style.top = (event.y + 30) + 'px';
         };
 
         const canvasCtx = document.getElementById('performanceChart').getContext('2d');
@@ -871,7 +883,7 @@
                         labels: {
                             usePointStyle: true,
                             padding: 25,
-                            font: { size: 12, weight: '600' },
+                            font: { size: 16, weight: '600' },
                             generateLabels: (chart) => {
                                 const labels = Chart.defaults.plugins.legend.labels.generateLabels(chart);
                                 return labels.map(l => {
@@ -907,6 +919,11 @@
                             const alpha = ds.isHidden ? 0 : 1;
                             ds.borderColor = hexToRgba(ds.baseColor, alpha);
                             ds.backgroundColor = hexToRgba(ds.baseColor, alpha);
+
+                            // Show/hide right axis based on Ultras visibility
+                            if (ds.label === 'Ultras') {
+                                legend.chart.options.scales.yRight.display = !ds.isHidden;
+                            }
 
                             updateLeftAxisScale(legend.chart);
                             updateXAxisScale(legend.chart);
@@ -951,7 +968,7 @@
                 scales: {
                     x: { type: 'time', time: { unit: 'year' }, grid: { color: 'rgba(180, 180, 180, 0.2)' }, ticks: { color: '#a0a0a0' } },
                     yLeft: { position: 'left', title: { display: true, text: 'Time', color: '#a0a0a0' }, ticks: { callback: v => formatTime(v), color: '#a0a0a0' }, grid: { color: 'rgba(180, 180, 180, 0.2)' } },
-                    yRight: { position: 'right', title: { display: true, text: 'Distance (ultras)', color: '#a0a0a0' }, beginAtZero: true, ticks: { stepSize: 25, color: '#a0a0a0' }, max: 125, grid: { drawOnChartArea: false } }
+                    yRight: { position: 'right', title: { display: true, text: 'Distance (Ultras)', color: '#a0a0a0' }, beginAtZero: true, ticks: { stepSize: 25, color: '#a0a0a0' }, max: 125, grid: { drawOnChartArea: false } }
                 }
             },
             plugins: [legendBoxPlugin, visualControllerPlugin, {
