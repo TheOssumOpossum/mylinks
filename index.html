@@ -207,7 +207,7 @@
       </div>
       <div class="link-pill">
         <span class="label">@spreadsheetnerd</span>
-        <span class="sublabel">4K followers</span>
+        <span class="sublabel" id="tiktok-followers"></span>
       </div>
     </a>
 
@@ -221,7 +221,7 @@
       </div>
       <div class="link-pill">
         <span class="label">@vinnyvinnybonbon</span>
-        <span class="sublabel">500 followers</span>
+        <span class="sublabel" id="instagram-followers"></span>
       </div>
     </a>
 
@@ -269,6 +269,11 @@
 
   </div>
   <script>
+    const tiktokFollowers = '4.5K';
+    const instagramFollowers = '1.5K';
+    document.getElementById('tiktok-followers').textContent = tiktokFollowers + ' followers';
+    document.getElementById('instagram-followers').textContent = instagramFollowers + ' followers';
+
     const mainPic = document.getElementById('profile-pic');
     const gravity = 0.2;
     const ghostQueue = []; // The queue to track our ghosts
