@@ -126,6 +126,30 @@
       line-height: 1.2;
     }
 
+    /* Gold featured pill */
+    .featured .avatar {
+      background-color: #2b2208;
+      border-color: #d4af37;
+    }
+
+    .featured .avatar .fa-newspaper {
+      color: #ffd700;
+    }
+
+    .featured .link-pill {
+      border-color: #d4af37;
+    }
+
+    .featured:hover .link-pill,
+    .featured:focus .link-pill {
+      border-color: #ffd700;
+    }
+
+    .featured:hover .avatar,
+    .featured:focus .avatar {
+      border-color: #ffd700;
+    }
+
     .profile-container {
       width: 200px;
       /* Set a fixed width */
@@ -184,6 +208,20 @@
   </header>
 
   <div class="links-container">
+
+    <!-- Featured article -->
+    <a class="link-row featured"
+       href="https://runnersofnyc.substack.com/p/one-dollar-ultra-nyc-vincent-bommier-runners-of-nyc"
+       target="_blank"
+       rel="noopener">
+      <div class="avatar">
+        <i class="fa-solid fa-newspaper"></i>
+      </div>
+      <div class="link-pill">
+        <span class="label">Featured in Runners of NYC</span>
+        <span class="sublabel">Read the One Dollar Ultra story</span>
+      </div>
+    </a>
 
     <!-- Email -->
     <a class="link-row"
@@ -269,8 +307,8 @@
 
   </div>
   <script>
-    const tiktokFollowers = '4.5K';
-    const instagramFollowers = '1.5K';
+    const tiktokFollowers = '5.5K';
+    const instagramFollowers = '2.5K';
     document.getElementById('tiktok-followers').textContent = tiktokFollowers + ' followers';
     document.getElementById('instagram-followers').textContent = instagramFollowers + ' followers';
 
