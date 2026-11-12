@@ -36,6 +36,7 @@ def instagram(username):
     page = opener.open(req, timeout=30).read().decode("utf-8", "replace")
     tok = re.search(r'token:\s*"([^"]+)"', page)
     if not tok:
+        print("Instagram: no token found on blastup page (page may have changed or been blocked)")
         return None
     body = json.dumps({"_token": tok.group(1), "username": username}).encode()
     req = urllib.request.Request(base, data=body, headers={
@@ -43,7 +44,11 @@ def instagram(username):
         "Accept": "application/json", "Referer": base,
     })
     data = json.loads(opener.open(req, timeout=60).read())
-    return int(data["followers"]) if data.get("success") else None
+    if not data.get("success"):
+        data.pop("profile_picture", None)
+        print(f"Instagram: blastup replied without a count: {json.dumps(data)[:300]}")
+        return None
+    return int(data["followers"])
 
 
 def abbreviate(n):
