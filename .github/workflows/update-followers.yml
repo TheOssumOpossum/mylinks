@@ -17,6 +17,8 @@ jobs:
         with:
           python-version: "3.12"
       - name: Fetch follower counts and update index.html
+        id: scrape
+        continue-on-error: true # still commit any counts that were read
         run: python scripts/update_followers.py
       - name: Commit changes
         run: |
@@ -29,3 +31,8 @@ jobs:
           git add index.html
           git commit -m "Update follower counts"
           git push
+      - name: Fail run if any count could not be read
+        if: steps.scrape.outcome == 'failure'
+        run: |
+          echo "::error::Could not read a follower count; see the scrape step log"
+          exit 1

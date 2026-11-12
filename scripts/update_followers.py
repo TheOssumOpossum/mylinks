@@ -57,6 +57,7 @@ def abbreviate(n):
 def main():
     text = INDEX.read_text()
     new = text
+    failed = []
     for name, fn, user, var in [
         ("TikTok", tiktok, "spreadsheetnerd", "tiktokFollowers"),
         ("Instagram", instagram, "vinnyvinnybonbon", "instagramFollowers"),
@@ -65,9 +66,11 @@ def main():
             count = fn(user)
         except Exception as e:  # network error, block, etc.
             print(f"{name}: fetch failed ({e}); skipping")
+            failed.append(name)
             continue
         if not count:
             print(f"{name}: count not found; skipping")
+            failed.append(name)
             continue
         label = abbreviate(count)
         print(f"{name}: {count} -> {label}")
@@ -79,6 +82,9 @@ def main():
         print("index.html updated")
     else:
         print("No changes")
+    if failed:
+        # Counts that did load are already saved above; exit non-zero so the run shows as failed.
+        sys.exit(f"Failed to read follower count for: {', '.join(failed)}")
 
 
 if __name__ == "__main__":
