@@ -4,10 +4,10 @@
 Each platform is best-effort: if a count can't be retrieved, that platform is
 skipped and its existing value in index.html is left untouched.
 """
-import http.cookiejar
 import json
 import re
 import sys
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -27,28 +27,48 @@ def tiktok(username):
     return int(m.group(1)) if m else None
 
 
-def instagram(username):
-    """Use blastup.com's public follower-count tool (same flow its web page uses)."""
-    base = "https://blastup.com/instagram-follower-count"
-    jar = http.cookiejar.CookieJar()
-    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
-    req = urllib.request.Request(base, headers={"User-Agent": UA})
-    page = opener.open(req, timeout=30).read().decode("utf-8", "replace")
-    tok = re.search(r'token:\s*"([^"]+)"', page)
-    if not tok:
-        print("Instagram: no token found on blastup page (page may have changed or been blocked)")
+LINKTREE = "https://linktr.ee/vinnybonbon"
+
+
+def _find_instagram_link(node):
+    """Walk the Linktree page data for the INSTAGRAM_PROFILE link."""
+    if isinstance(node, dict):
+        if node.get("type") == "INSTAGRAM_PROFILE" and node.get("context", {}).get("integrationId"):
+            return node
+        node = list(node.values())
+    if isinstance(node, list):
+        for v in node:
+            found = _find_instagram_link(v)
+            if found:
+                return found
+    return None
+
+
+def instagram(_username):
+    """Read the count Linktree shows for the Instagram link on linktr.ee/vinnybonbon."""
+    page = fetch(LINKTREE)
+    m = re.search(r'<script id="__NEXT_DATA__"[^>]*>(.*?)</script>', page, re.S)
+    if not m:
+        print("Instagram: no page data found on Linktree page")
         return None
-    body = json.dumps({"_token": tok.group(1), "username": username}).encode()
-    req = urllib.request.Request(base, data=body, headers={
-        "User-Agent": UA, "Content-Type": "application/json",
-        "Accept": "application/json", "Referer": base,
+    data = json.loads(m.group(1))
+    link = _find_instagram_link(data)
+    uuid = data.get("props", {}).get("pageProps", {}).get("account", {}).get("uuid")
+    if not link or not uuid:
+        print("Instagram: Instagram link not found on Linktree page")
+        return None
+    qs = urllib.parse.urlencode({
+        "instagramBusinessIntegrationId": link["context"]["integrationId"],
+        "linkId": link["id"],
+        "accountUuid": uuid,
     })
-    data = json.loads(opener.open(req, timeout=60).read())
-    if not data.get("success"):
-        data.pop("profile_picture", None)
-        print(f"Instagram: blastup replied without a count: {json.dumps(data)[:300]}")
+    resp = json.loads(fetch(f"https://linktr.ee/api/instagram-business/instagram-profile?{qs}"))
+    count = resp.get("user", {}).get("followersCount")
+    if not count:
+        resp.pop("posts", None)
+        print(f"Instagram: Linktree replied without a count: {json.dumps(resp)[:300]}")
         return None
-    return int(data["followers"])
+    return int(count)
 
 
 def abbreviate(n):
